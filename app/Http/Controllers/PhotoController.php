@@ -27,7 +27,7 @@ class PhotoController extends Controller
 
     public function index()
     {
-        $photos = Photo::with('user', 'aprovadoPor')->paginate();
+        $photos = Photo::with('user', 'aprovadoPor')->orderBy('created_at', 'desc')->paginate(5);
 
         return PhotoResource::collection($photos);
     }
