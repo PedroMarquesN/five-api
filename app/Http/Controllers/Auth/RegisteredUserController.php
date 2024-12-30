@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\CreateUserToken;
+use App\Actions\RegisterNewUser;
+use App\Dtos\CreateUserDto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRegisterRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -19,19 +23,22 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(StoreRegisterRequest $request): \Illuminate\Http\JsonResponse
+    public function store(
+        StoreRegisterRequest $request,
+        RegisterNewUser $registerNewUser,
+        CreateUserToken $createUserToken
+    ): JsonResponse
     {
 
-
-        $user = User::query()->create($request->validated());
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        event(new Registered($user));
+        $data = $request->validated();
+        $userDto = new CreateUserDto($data['name'], $data['email'], $data['password']);
+        $user  =  $registerNewUser->handler($userDto);
+        $token =  $createUserToken->handler($user);
 
         Auth::login($user);
 
         return response()->json([
-            'access_token' => $token,
+            'token' => $token,
             'token_type' => 'Bearer',
         ]);
     }
