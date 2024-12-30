@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePhotoRequest;
+use App\Http\Resources\PhotoResource;
 use App\Models\Photo;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -12,29 +14,25 @@ class PhotoController extends Controller
 
     use AuthorizesRequests;
 
-    public function store(Request $request)
+    public function store(StorePhotoRequest $request)
     {
-        $validated = $request->validate([
-            'titulo' => 'required|string|max:255',
-            'descricao' => 'nullable|string',
-            'image' => 'required|image|max:2048',
-        ]);
+        $data = $request->validated();
 
         $filePath = $request->file('image')->store('uploads/photos', 'public');
 
-        $validated['caminho'] = $filePath;
-        $validated['status'] = 'pendente';
-        $photo = auth()->user()->photos()->create($validated);
+        $data['caminho'] = $filePath;
+        $data['status'] = 'pendente';
+        $photo = auth()->user()->photos()->create($data);
 
 
-        return response()->json(['message' => 'Photo uploaded successfully!', 'data' => $photo], 201);
+        return PhotoResource::make($photo);
     }
 
     public function index()
     {
-        $photos = Photo::with('user:name,id', 'aprovadoPor:name')->get();
+        $photos = Photo::with('user', 'aprovadoPor')->paginate();
 
-        return response()->json($photos);
+        return PhotoResource::collection($photos);
     }
 
     public function approve(Request $request, Photo $photo)
@@ -46,7 +44,7 @@ class PhotoController extends Controller
             'aprovado_por' => auth()->id(),
         ]);
 
-        return response()->json(['message' => 'Photo approved successfully!', 'data' => $photo]);
+        return PhotoResource::make($photo);
     }
 
     public function reject(Request $request, Photo $photo)
@@ -57,7 +55,7 @@ class PhotoController extends Controller
             'status' => 'rejeitado',
         ]);
 
-        return response()->json(['message' => 'Photo rejected successfully!', 'data' => $photo]);
+        return PhotoResource::make($photo);
     }
 
     public function destroy(Photo $photo)
@@ -68,6 +66,6 @@ class PhotoController extends Controller
 
         $photo->delete();
 
-        return response()->json(['message' => 'Photo deleted successfully!']);
+        return response()->json(['message' => 'Photo deleted successfully!', 204]);
     }
 }
