@@ -23,6 +23,7 @@ class PhotoResource extends JsonResource
             'user' => new UserResource($this->user),
             'aprovado_por' => new UserResource($this->aprovadoPor),
             'criado_em' => $this->created_at->format('d-m-Y H:i:s'),
+
         ];
     }
 }
