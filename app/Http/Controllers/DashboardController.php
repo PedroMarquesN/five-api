@@ -15,6 +15,9 @@ class DashboardController extends Controller
         $pendingApprovals = Photo::where('status', 'pendente')->count();
         $registeredUsers = User::count();
 
+
+        //implementar a logica para o grafico
+
         return response()->json([
             'photosUploaded' => $photosUploaded,
             'pendingApprovals' => $pendingApprovals,
