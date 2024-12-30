@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PhotoStatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,7 +15,7 @@ return new class extends Migration
             $table->string('titulo');
             $table->text('descricao');
             $table->string('caminho');
-            $table->enum('status', ['pendente', 'aprovado', 'rejeitado'])->default('pendente');
+            $table->enum('status', PhotoStatusEnum::toArray())->default('pendente');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('aprovado_por')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();

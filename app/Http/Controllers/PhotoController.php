@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\CreateNewPhoto;
+use App\Enums\PhotoStatusEnum;
 use App\Http\Requests\StorePhotoRequest;
 use App\Http\Resources\PhotoResource;
 use App\Models\Photo;
@@ -14,15 +16,10 @@ class PhotoController extends Controller
 
     use AuthorizesRequests;
 
-    public function store(StorePhotoRequest $request)
+    public function store(StorePhotoRequest $request, CreateNewPhoto $createNewPhoto)
     {
         $data = $request->validated();
-
-        $filePath = $request->file('image')->store('uploads/photos', 'public');
-
-        $data['caminho'] = $filePath;
-        $data['status'] = 'pendente';
-        $photo = auth()->user()->photos()->create($data);
+        $photo = $createNewPhoto->handler($data);
 
 
         return PhotoResource::make($photo);
@@ -40,7 +37,7 @@ class PhotoController extends Controller
         $this->authorize('update', $photo);
 
         $photo->update([
-            'status' => 'aprovado',
+            'status' => PhotoStatusEnum::APROVADO,
             'aprovado_por' => auth()->id(),
         ]);
 
@@ -52,7 +49,7 @@ class PhotoController extends Controller
         $this->authorize('update', $photo);
 
         $photo->update([
-            'status' => 'rejeitado',
+            'status' => PhotoStatusEnum::REJEITADO,
         ]);
 
         return PhotoResource::make($photo);
